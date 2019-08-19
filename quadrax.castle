@@ -1,6 +1,6 @@
 name: Quadrax
 owner: ccheever
 author: ccheever
-description: Quadrax, a Tetris clone, reimplemented on Castle
+description: Kind of like Tetris
 main: main.lua
 coverImageUrl: https://github.com/ccheever/quadrax-redux/raw/master/QuadraxScreenshot.png

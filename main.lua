@@ -13,6 +13,9 @@ local CPColor = {0.3, 0.8, 0.3, 1.0}
 local CPX
 local CPY
 local Board
+local UserAvatarImage
+local UserId
+local User
 
 local BoardWidth = 10
 local BoardHeight = 24
@@ -67,8 +70,18 @@ function setCurrentPiece(piece)
 end
 
 function love.load()
-    GameState = "IN_GAME"
+    GameState = "TITLE_SCREEN"
     initGameState()
+    network.async(
+        function()
+            User = castle.user.getMe()
+            UserId = User.userId
+            UserAvatarImage = love.graphics.newImage(User.photoUrl)
+            GameState = "IN_GAME"
+            -- log({UserName = UserName, UserAvatarImage = UserAvatarImage})
+            log({UserId = UserId, UserAvatarImage = UserAvatarImage, User = User})
+        end
+    )
 end
 
 function rotateCurrentPieceRight()
@@ -132,6 +145,9 @@ function drawBoard(x, y, s)
                 love.graphics.setColor(unpack(block[1]))
                 love.graphics.setLineWidth(1)
                 love.graphics.rectangle("fill", x_ + 2, y_ + 2, s - 4, s - 4)
+                local ah = UserAvatarImage:getHeight()
+                local aw = UserAvatarImage:getWidth()
+                love.graphics.draw(UserAvatarImage, x_ + 2, y_ + 2, 0, s / aw, s / ah)
             end
         end
     end
@@ -157,6 +173,7 @@ function love.draw()
         love.graphics.print("QUADRAX", 20, 20)
         love.graphics.print("Press any key to start", 20, 40)
     elseif GameState == "IN_GAME" then
+        -- love.graphics.draw(UserAvatarImage, 0, 0, 0)
         love.graphics.print("QUADRAX", 20, 20)
         love.graphics.print("Level " .. Level, 20, 50)
         love.graphics.print("Score " .. Score, 20, 80)
