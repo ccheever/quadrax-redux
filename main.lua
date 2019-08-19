@@ -7,6 +7,7 @@ local Score
 local Level
 local Rows
 local CurrentPiece
+local NextPiece
 local CPColor = {0.3, 0.8, 0.3, 1.0}
 local CPX
 local CPY
@@ -17,11 +18,11 @@ local BoardHeight = 24
 local HiddenRows = 4
 
 local Pieces = {
-    {"rod", {{2, 1}, {2, 2}, {2, 3}, {2, 4}}},
-    {"square", {{2, 2}, {2, 3}, {3, 2}, {3, 3}}},
-    {"J", {{1, 2}, {1, 3}, {2, 3}, {3, 3}}},
-    {"L", {{1, 2}, {2, 2}, {3, 2}, {1, 3}}},
-    {"T", {{1, 2}, {2, 2}, {3, 2}, {2, 3}}}
+    {"rod", {{2, 1}, {2, 2}, {2, 3}, {2, 4}}, {0.0, 0.0, 1.0, 1.0}},
+    {"square", {{2, 2}, {2, 3}, {3, 2}, {3, 3}}, {1.0, 0.0, 0.0, 1.0}},
+    {"J", {{1, 2}, {1, 3}, {2, 3}, {3, 3}}, {1.0, 2 / 3, 0.0, 1.0}},
+    {"L", {{1, 2}, {2, 2}, {3, 2}, {1, 3}}, {1.0, 0.0, 1.0, 1.0}},
+    {"T", {{1, 2}, {2, 2}, {3, 2}, {2, 3}}, {0.0, 1.0, 0.0, 1.0}}
 }
 
 love.keyboard.setKeyRepeat(true)
@@ -45,6 +46,7 @@ function initGameState()
     CPY = 0
     Score = 0
     Rows = 0
+    NextPiece = Pieces[love.math.random(#Pieces)]
     startNextPiece()
 end
 
@@ -55,6 +57,8 @@ function setCurrentPiece(piece)
         {0, 0, 0, 0},
         {0, 0, 0, 0}
     }
+
+    CPColor = piece[3]
 
     for _, p in ipairs(piece[2]) do
         local x, y = unpack(p)
@@ -98,7 +102,7 @@ function checkCurrentPieceLocationValid()
             if CurrentPiece[x][y] > 0 then
                 local x_ = CPX - 1 + x
                 local y_ = CPY - 1 + y
-                if x_ < 1 or x_ > BoardWidth or y_ < 1 or y_ > BoardHeight or Board[x_][y_] > 0 then
+                if x_ < 1 or x_ > BoardWidth or y_ < 1 or y_ > BoardHeight or Board[x_][y_] ~= 0 then
                     return false
                 end
             end
@@ -119,16 +123,16 @@ function drawBoard(x, y, s)
             local block = Board[col][row]
             local x_ = x + s * (col - 1)
             local y_ = y + s * (row - HiddenRows - 1)
-            if block > 0 then
-                love.graphics.setColor(1, 1, .8, 1)
+            if block ~= 0 then
+                love.graphics.setColor(unpack(block[1]))
                 love.graphics.setLineWidth(3)
             else
                 love.graphics.setColor(0.2, 0.2, 0.2, 0.25)
                 love.graphics.setLineWidth(1)
             end
             love.graphics.rectangle("line", x_, y_, s, s)
-            if block > 0 then
-                love.graphics.setColor(1, 1, 0.8, 0.8)
+            if block ~= 0 then
+                love.graphics.setColor(unpack(block[1]))
                 love.graphics.setLineWidth(1)
                 love.graphics.rectangle("fill", x_ + 2, y_ + 2, s - 4, s - 4)
             end
@@ -161,6 +165,9 @@ function love.draw()
         love.graphics.print("Level " .. Level, 20, 50)
         love.graphics.print("Score " .. Score, 20, 80)
         love.graphics.print("Rows  " .. Rows, 20, 110)
+
+        love.graphics.print("Next", 20, 170)
+        drawPiece(NextPiece, 20, 180)
         drawBoard(150, 0, 22)
     elseif GameState == "GAME_OVER" then
         love.graphics.print("GAME OVER", 20, 20)
@@ -174,7 +181,7 @@ end
 local t = 0
 function love.update(dt)
     local t_ = t + dt
-    local int = Level
+    local int = Level * 0.7
     if math.floor(t * int) ~= math.floor(t_ * int) then
         movePieceDown()
     end
@@ -196,7 +203,7 @@ function placePiece()
     for x = 1, 4 do
         for y = 1, 4 do
             if CurrentPiece[x][y] > 0 then
-                Board[CPX + x - 1][CPY + y - 1] = CurrentPiece[x][y]
+                Board[CPX + x - 1][CPY + y - 1] = {CPColor, "whoami"}
             end
         end
     end
@@ -210,7 +217,7 @@ function checkAndClearRows()
     for y = 1, BoardHeight do
         local noHoles = true
         for x = 1, BoardWidth do
-            if not (Board[x][y] > 0) then
+            if not (Board[x][y] ~= 0) then
                 noHoles = false
                 break
             end
@@ -241,7 +248,8 @@ function checkAndClearRows()
 end
 
 function startNextPiece()
-    setCurrentPiece(Pieces[love.math.random(#Pieces)])
+    setCurrentPiece(NextPiece)
+    NextPiece = Pieces[love.math.random(#Pieces)]
     CPX = 4
     CPY = 1
     if not checkCurrentPieceLocationValid() then
@@ -254,8 +262,8 @@ function gameOver()
 end
 
 function drawPiece(p, x, y)
-    -- local color = p[1]
-    local color = {0.8, 0.8, 0.8, 1.0}
+    local color = p[3]
+    -- local color = {0.8, 0.8, 0.8, 1.0}
     local pieceName = p[1]
     local blocks = p[2]
     for _, block in ipairs(blocks) do
@@ -266,21 +274,20 @@ function drawPiece(p, x, y)
         local size = 20
         love.graphics.rectangle("line", x + px * size, y + py * size, size, size)
     end
-    drawCurrentPiece()
 end
 
-function drawCurrentPiece()
-    local size = 20
-    love.graphics.setColor(0.3, 0.8, 0.3, 1.0)
-    love.graphics.setLineWidth(3)
-    for x = 1, 4 do
-        for y = 1, 4 do
-            if CurrentPiece[x][y] > 0 then
-                love.graphics.rectangle("line", 300 + x * size, 100 + y * size, size, size)
-            end
-        end
-    end
-end
+-- function drawCurrentPiece()
+--     local size = 20
+--     love.graphics.setColor(0.3, 0.8, 0.3, 1.0)
+--     love.graphics.setLineWidth(3)
+--     for x = 1, 4 do
+--         for y = 1, 4 do
+--             if CurrentPiece[x][y] > 0 then
+--                 love.graphics.rectangle("line", 300 + x * size, 100 + y * size, size, size)
+--             end
+--         end
+--     end
+-- end
 
 function love.keypressed(key, scancode, isrepeat)
     if GameState == "TITLE_SCREEN" then
