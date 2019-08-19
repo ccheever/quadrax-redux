@@ -128,7 +128,7 @@ function checkCurrentPieceLocationValid()
 end
 
 function drawBoard(x, y, s)
-    local bw = 1.5
+    local bw = 2
     love.graphics.setColor(0.8, 0.8, 0.8, 0.4)
     love.graphics.setLineWidth(s)
     love.graphics.rectangle("line", x, y, BoardWidth * s, (BoardHeight - HiddenRows) * s)
@@ -142,17 +142,18 @@ function drawBoard(x, y, s)
             local y_ = y + s * (row - HiddenRows - 1)
             if block ~= 0 then
                 love.graphics.setColor(unpack(block[1]))
-                love.graphics.setLineWidth(1)
+                love.graphics.setLineWidth(bw)
                 love.graphics.rectangle("fill", x_ + bw / 2, y_ + bw / 2, s - bw, s - bw)
                 local ah = UserAvatarImage:getHeight()
                 local aw = UserAvatarImage:getWidth()
                 love.graphics.draw(UserAvatarImage, x_ + bw / 2, y_ + bw / 2, 0, (s - bw) / aw, (s - bw) / ah)
 
                 love.graphics.setColor(unpack(block[1]))
+                love.graphics.setColor(0.3, 0.6, 0.9, 0.8)
                 -- love.graphics.setColor(1.0, 0.8, 0.0, 1.0)
                 love.graphics.setLineWidth(bw)
             else
-                love.graphics.setColor(0.2, 0.2, 0.2, 0.25)
+                love.graphics.setColor(0.2, 0.2, 0.2, 0.1)
                 love.graphics.setLineWidth(1)
             end
             love.graphics.rectangle("line", x_, y_, s, s)
@@ -212,10 +213,12 @@ function movePieceDown()
     CPY = CPY + 1
     if checkCurrentPieceLocationValid() then
         Score = Score + 1
+        return true
     else
         CPY = CPY - 1
         placePiece()
         startNextPiece()
+        return false
     end
 end
 
@@ -325,13 +328,7 @@ function love.keypressed(key, scancode, isrepeat)
         elseif key == "down" then
             movePieceDown()
         elseif key == "space" then
-            while true do
-                CPY = CPY + 1
-                if not checkCurrentPieceLocationValid() then
-                    CPY = CPY - 1
-                    movePieceDown()
-                    break
-                end
+            while movePieceDown() do
             end
         elseif key == "p" then
             setCurrentPiece(Pieces[love.math.random(#Pieces)])
