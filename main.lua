@@ -1,6 +1,7 @@
 local log =
     require "https://raw.githubusercontent.com/ccheever/castle-utils/c5a150bf783bfcaf24bbcf8cbe0824fae34a8198/log.lua"
-local array = require "https://raw.githubusercontent.com/ccheever/castle-utils/81e0e1e92fff19a8aa597bbed7939fc2ef048562/array.lua"
+local array =
+    require "https://raw.githubusercontent.com/ccheever/castle-utils/81e0e1e92fff19a8aa597bbed7939fc2ef048562/array.lua"
 
 local GameState
 local Score
@@ -68,7 +69,6 @@ end
 function love.load()
     GameState = "IN_GAME"
     initGameState()
-    -- log(setCurrentPiece(Pieces[3]))
 end
 
 function rotateCurrentPieceRight()
@@ -144,7 +144,6 @@ function drawBoard(x, y, s)
             local x_ = x + s * (gx - 1)
             local y_ = y + s * (gy - HiddenRows - 1)
             if gx > 0 and gx <= BoardWidth and gy >= HiddenRows and gy <= BoardHeight and CurrentPiece[cx][cy] > 0 then
-                -- log(gy, HiddenRows)
                 love.graphics.setColor(unpack(CPColor))
                 love.graphics.setLineWidth(3)
                 love.graphics.rectangle("line", x_, y_, s, s)
@@ -260,7 +259,6 @@ end
 
 function drawPiece(p, x, y)
     local color = p[3]
-    -- local color = {0.8, 0.8, 0.8, 1.0}
     local pieceName = p[1]
     local blocks = p[2]
     for _, block in ipairs(blocks) do
@@ -272,19 +270,6 @@ function drawPiece(p, x, y)
         love.graphics.rectangle("line", x + px * size, y + py * size, size, size)
     end
 end
-
--- function drawCurrentPiece()
---     local size = 20
---     love.graphics.setColor(0.3, 0.8, 0.3, 1.0)
---     love.graphics.setLineWidth(3)
---     for x = 1, 4 do
---         for y = 1, 4 do
---             if CurrentPiece[x][y] > 0 then
---                 love.graphics.rectangle("line", 300 + x * size, 100 + y * size, size, size)
---             end
---         end
---     end
--- end
 
 function love.keypressed(key, scancode, isrepeat)
     if GameState == "TITLE_SCREEN" then
@@ -327,6 +312,5 @@ function love.keypressed(key, scancode, isrepeat)
         elseif key == "p" then
             setCurrentPiece(Pieces[love.math.random(#Pieces)])
         end
-    -- log("Key pressed in game")
     end
 end
