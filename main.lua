@@ -20,6 +20,8 @@ local User
 local BoardWidth = 10
 local BoardHeight = 24
 local HiddenRows = 4
+local BorderWidth = 1.5
+local Scale = 22
 
 local Pieces = {
     {"rod", {{2, 1}, {2, 2}, {2, 3}, {2, 4}}, {0.0, 0.0, 1.0, 1.0}},
@@ -128,7 +130,7 @@ function checkCurrentPieceLocationValid()
 end
 
 function drawBoard(x, y, s)
-    local bw = 2
+    local bw = BorderWidth
     love.graphics.setColor(0.8, 0.8, 0.8, 0.4)
     love.graphics.setLineWidth(s)
     love.graphics.rectangle("line", x, y, BoardWidth * s, (BoardHeight - HiddenRows) * s)
@@ -149,8 +151,9 @@ function drawBoard(x, y, s)
                 love.graphics.draw(UserAvatarImage, x_ + bw / 2, y_ + bw / 2, 0, (s - bw) / aw, (s - bw) / ah)
 
                 love.graphics.setColor(unpack(block[1]))
-                love.graphics.setColor(0.3, 0.6, 0.9, 0.8)
+                -- love.graphics.setColor(0.3, 0.6, 0.9, 0.8)
                 -- love.graphics.setColor(1.0, 0.8, 0.0, 1.0)
+                love.graphics.setColor(1.0, 1.0, 1.0, 1.0)
                 love.graphics.setLineWidth(bw)
             else
                 love.graphics.setColor(0.2, 0.2, 0.2, 0.1)
@@ -168,8 +171,10 @@ function drawBoard(x, y, s)
             local x_ = x + s * (gx - 1)
             local y_ = y + s * (gy - HiddenRows - 1)
             if gx > 0 and gx <= BoardWidth and gy >= HiddenRows and gy <= BoardHeight and CurrentPiece[cx][cy] > 0 then
+                love.graphics.setColor(CPColor[1], CPColor[2], CPColor[3], CPColor[4] / 3)
+                love.graphics.setLineWidth(bw)
+                love.graphics.rectangle("fill", x_, y_, s, s)
                 love.graphics.setColor(unpack(CPColor))
-                love.graphics.setLineWidth(3)
                 love.graphics.rectangle("line", x_, y_, s, s)
             end
         end
@@ -188,8 +193,8 @@ function love.draw()
         love.graphics.print("Rows  " .. Rows, 20, 110)
 
         love.graphics.print("Next", 20, 170)
-        drawPiece(NextPiece, 20, 180)
-        drawBoard(150, 0, 22)
+        drawPiece(NextPiece, 20, 200)
+        drawBoard(150, 0, Scale)
     elseif GameState == "GAME_OVER" then
         love.graphics.print("GAME OVER", 20, 20)
         love.graphics.print("Level " .. Level, 20, 50)
@@ -284,17 +289,20 @@ function gameOver()
     GameState = "GAME_OVER"
 end
 
+-- Only used for drawing the next piece right now
 function drawPiece(p, x, y)
     local color = p[3]
     local pieceName = p[1]
     local blocks = p[2]
     for _, block in ipairs(blocks) do
-        love.graphics.setColor(color[1], color[2], color[3], color[4])
-        love.graphics.setLineWidth(3)
+        love.graphics.setLineWidth(BorderWidth)
         local px = block[1]
         local py = block[2]
-        local size = 20
-        love.graphics.rectangle("line", x + px * size, y + py * size, size, size)
+        local size = Scale
+        love.graphics.setColor(color[1], color[2], color[3], color[4] / 3)
+        love.graphics.rectangle("fill", x + (px - 1) * size, y + (py - 1) * size, size, size)
+        love.graphics.setColor(unpack(color))
+        love.graphics.rectangle("line", x + (px - 1) * size, y + (py - 1) * size, size, size)
     end
 end
 
