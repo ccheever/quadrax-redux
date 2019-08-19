@@ -3,11 +3,14 @@ local log =
 local array = require "./array"
 
 local GameState
+local Score
 local Level
+local Rows
 local CurrentPiece
 local CPColor = {0.3, 0.8, 0.3, 1.0}
 local CPX
 local CPY
+local Board
 
 local BoardWidth = 10
 local BoardHeight = 24
@@ -21,7 +24,7 @@ local Pieces = {
     {"T", {{1, 2}, {2, 2}, {3, 2}, {2, 3}}}
 }
 
-local Board
+love.keyboard.setKeyRepeat(true)
 
 function initGameState()
     Board = {}
@@ -34,13 +37,15 @@ function initGameState()
     end
 
     Board = array.createArray({BoardWidth, BoardHeight}, 0)
-    log("Board", Board)
+    -- log("Board", Board)
     -- Board[5][5] = 1
     -- Board[6][6] = 1
     Level = 1
     CPX = 5
     CPY = 0
-    setCurrentPiece(Pieces[4])
+    Score = 0
+    Rows = 0
+    startNextPiece()
 end
 
 function setCurrentPiece(piece)
@@ -60,9 +65,9 @@ function setCurrentPiece(piece)
 end
 
 function love.load()
-    GameState = "TITLE_SCREEN"
+    GameState = "IN_GAME"
     initGameState()
-    log(setCurrentPiece(Pieces[3]))
+    -- log(setCurrentPiece(Pieces[3]))
 end
 
 function rotateCurrentPieceRight()
@@ -91,9 +96,9 @@ function checkCurrentPieceLocationValid()
     for x = 1, 4 do
         for y = 1, 4 do
             if CurrentPiece[x][y] > 0 then
-                local x_ = CPX - 1 + x_
-                local y_ = CPY - 1 + y_
-                if x_ < 1 or x_ > BoardWidth or y_ < 1 or y > BoardHeight or Board[x_][y_] > 0 then
+                local x_ = CPX - 1 + x
+                local y_ = CPY - 1 + y
+                if x_ < 1 or x_ > BoardWidth or y_ < 1 or y_ > BoardHeight or Board[x_][y_] > 0 then
                     return false
                 end
             end
@@ -103,6 +108,12 @@ function checkCurrentPieceLocationValid()
 end
 
 function drawBoard(x, y, s)
+    love.graphics.setColor(0.8, 0.8, 0.8, 0.8)
+    love.graphics.setLineWidth(s)
+    love.graphics.rectangle("line", x, y, BoardWidth * s, (BoardHeight - HiddenRows) * s)
+    love.graphics.setLineWidth(0)
+    love.graphics.setColor(0, 0, 0, 1)
+    love.graphics.rectangle("fill", x, y, BoardWidth * s, (BoardHeight - HiddenRows) * s)
     for row = 1 + HiddenRows, BoardHeight do
         for col = 1, BoardWidth do
             local block = Board[col][row]
@@ -112,10 +123,15 @@ function drawBoard(x, y, s)
                 love.graphics.setColor(1, 1, .8, 1)
                 love.graphics.setLineWidth(3)
             else
-                love.graphics.setColor(0.8, 0.8, 0.8, 0.25)
+                love.graphics.setColor(0.2, 0.2, 0.2, 0.25)
                 love.graphics.setLineWidth(1)
             end
             love.graphics.rectangle("line", x_, y_, s, s)
+            if block > 0 then
+                love.graphics.setColor(1, 1, 0.8, 0.8)
+                love.graphics.setLineWidth(1)
+                love.graphics.rectangle("fill", x_ + 2, y_ + 2, s - 4, s - 4)
+            end
         end
     end
 
@@ -124,7 +140,7 @@ function drawBoard(x, y, s)
         for cy = 1, 4 do
             local gx = cx + CPX - 1
             local gy = cy + CPY - 1
-            local x_ = x + s * gx
+            local x_ = x + s * (gx - 1)
             local y_ = y + s * (gy - HiddenRows - 1)
             if gx > 0 and gx <= BoardWidth and gy >= HiddenRows and gy <= BoardHeight and CurrentPiece[cx][cy] > 0 then
                 -- log(gy, HiddenRows)
@@ -141,19 +157,100 @@ function love.draw()
         love.graphics.print("QUADRAX", 20, 20)
         love.graphics.print("Press any key to start", 20, 40)
     elseif GameState == "IN_GAME" then
-        love.graphics.print("In game", 20, 20)
+        love.graphics.print("QUADRAX", 20, 20)
         love.graphics.print("Level " .. Level, 20, 50)
-        for i = 1, #Pieces do
-            drawPiece(Pieces[i], 100, 100 * i - 100)
-        end
-        drawBoard(400, 0, 18)
+        love.graphics.print("Score " .. Score, 20, 80)
+        love.graphics.print("Rows  " .. Rows, 20, 110)
+        drawBoard(150, 0, 22)
+    elseif GameState == "GAME_OVER" then
+        love.graphics.print("GAME OVER", 20, 20)
+        love.graphics.print("Level " .. Level, 20, 50)
+        love.graphics.print("Score " .. Score, 20, 80)
+        love.graphics.print("Rows  " .. Rows, 20, 110)
+    -- love.graphics.print("Press a key to start again", 20, 40)
     end
 end
 
 local t = 0
 function love.update(dt)
-    t = t + dt
-    CPY = math.floor(t * 1.3) + 1
+    local t_ = t + dt
+    local int = Level
+    if math.floor(t * int) ~= math.floor(t_ * int) then
+        movePieceDown()
+    end
+    t = t_
+end
+
+function movePieceDown()
+    CPY = CPY + 1
+    if checkCurrentPieceLocationValid() then
+        Score = Score + 1
+    else
+        CPY = CPY - 1
+        placePiece()
+        startNextPiece()
+    end
+end
+
+function placePiece()
+    for x = 1, 4 do
+        for y = 1, 4 do
+            if CurrentPiece[x][y] > 0 then
+                Board[CPX + x - 1][CPY + y - 1] = CurrentPiece[x][y]
+            end
+        end
+    end
+    checkAndClearRows()
+end
+
+function checkAndClearRows()
+    local rows_ = Rows
+    local removedRows = 0
+    local inc = 0
+    for y = 1, BoardHeight do
+        local noHoles = true
+        for x = 1, BoardWidth do
+            if not (Board[x][y] > 0) then
+                noHoles = false
+                break
+            end
+        end
+        if noHoles then
+            removedRows = removedRows + 1
+
+            -- Get increasing amounts of points for
+            -- removing multiple rows at at time
+            inc = inc + 100
+            Score = Score + inc
+            Rows = Rows + 1
+
+            -- Remove row
+            for y_ = y, 2, -1 do
+                for x_ = 1, BoardWidth do
+                    Board[x_][y_] = Board[x_][y_ - 1]
+                end
+            end
+            for x_ = 1, BoardWidth do
+                Board[x_][1] = 0
+            end
+        end
+    end
+    if (math.floor(rows_ / 10) ~= math.floor(Rows / 10)) then
+        Level = Level + 1
+    end
+end
+
+function startNextPiece()
+    setCurrentPiece(Pieces[love.math.random(#Pieces)])
+    CPX = 4
+    CPY = 1
+    if not checkCurrentPieceLocationValid() then
+        gameOver()
+    end
+end
+
+function gameOver()
+    GameState = "GAME_OVER"
 end
 
 function drawPiece(p, x, y)
@@ -188,15 +285,44 @@ end
 function love.keypressed(key, scancode, isrepeat)
     if GameState == "TITLE_SCREEN" then
         GameState = "IN_GAME"
+    elseif GameState == "GAME_OVER" then
+        initGameState()
+        GameState = "IN_GAME"
     elseif GameState == "IN_GAME" then
-        Level = Level + 1
-        if key == "r" then
+        if key == "r" or key == "up" then
             rotateCurrentPieceRight()
+            if not checkCurrentPieceLocationValid() then
+                rotateCurrentPieceLeft()
+            end
         elseif key == "l" then
             rotateCurrentPieceLeft()
+            if not checkCurrentPieceLocationValid() then
+                rotateCurrentPieceRight()
+            end
+        elseif key == "left" then
+            CPX = CPX - 1
+            if not checkCurrentPieceLocationValid() then
+                CPX = CPX + 1
+            end
+        elseif key == "right" then
+            CPX = CPX + 1
+            if not checkCurrentPieceLocationValid() then
+                CPX = CPX - 1
+            end
+        elseif key == "down" then
+            movePieceDown()
+        elseif key == "space" then
+            while true do
+                CPY = CPY + 1
+                if not checkCurrentPieceLocationValid() then
+                    CPY = CPY - 1
+                    movePieceDown()
+                    break
+                end
+            end
         elseif key == "p" then
-            setCurrentPiece(Pieces[love.math.random(1, 5)])
+            setCurrentPiece(Pieces[love.math.random(#Pieces)])
         end
-        log("Key pressed in game")
+    -- log("Key pressed in game")
     end
 end
