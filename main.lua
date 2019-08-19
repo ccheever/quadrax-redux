@@ -1,6 +1,6 @@
 local log =
     require "https://raw.githubusercontent.com/ccheever/castle-utils/c5a150bf783bfcaf24bbcf8cbe0824fae34a8198/log.lua"
-local array = require "./array"
+local array = require "https://raw.githubusercontent.com/ccheever/castle-utils/81e0e1e92fff19a8aa597bbed7939fc2ef048562/array.lua"
 
 local GameState
 local Score
@@ -38,9 +38,6 @@ function initGameState()
     end
 
     Board = array.createArray({BoardWidth, BoardHeight}, 0)
-    -- log("Board", Board)
-    -- Board[5][5] = 1
-    -- Board[6][6] = 1
     Level = 1
     CPX = 5
     CPY = 0
