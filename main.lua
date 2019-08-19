@@ -31,6 +31,12 @@ local Pieces = {
 
 love.keyboard.setKeyRepeat(true)
 
+function colorFromHex(s)
+    local rh = s:sub(2, 3):lower()
+    local gh = s:sub(4, 5):lower()
+    local bh = s:sub(6, 7):lower()
+end
+
 function initGameState()
     Board = {}
     for x = 1, BoardWidth do
@@ -122,7 +128,8 @@ function checkCurrentPieceLocationValid()
 end
 
 function drawBoard(x, y, s)
-    love.graphics.setColor(0.8, 0.8, 0.8, 0.8)
+    local bw = 1.5
+    love.graphics.setColor(0.8, 0.8, 0.8, 0.4)
     love.graphics.setLineWidth(s)
     love.graphics.rectangle("line", x, y, BoardWidth * s, (BoardHeight - HiddenRows) * s)
     love.graphics.setLineWidth(0)
@@ -135,20 +142,20 @@ function drawBoard(x, y, s)
             local y_ = y + s * (row - HiddenRows - 1)
             if block ~= 0 then
                 love.graphics.setColor(unpack(block[1]))
-                love.graphics.setLineWidth(3)
+                love.graphics.setLineWidth(1)
+                love.graphics.rectangle("fill", x_ + bw / 2, y_ + bw / 2, s - bw, s - bw)
+                local ah = UserAvatarImage:getHeight()
+                local aw = UserAvatarImage:getWidth()
+                love.graphics.draw(UserAvatarImage, x_ + bw / 2, y_ + bw / 2, 0, (s - bw) / aw, (s - bw) / ah)
+
+                love.graphics.setColor(unpack(block[1]))
+                -- love.graphics.setColor(1.0, 0.8, 0.0, 1.0)
+                love.graphics.setLineWidth(bw)
             else
                 love.graphics.setColor(0.2, 0.2, 0.2, 0.25)
                 love.graphics.setLineWidth(1)
             end
             love.graphics.rectangle("line", x_, y_, s, s)
-            if block ~= 0 then
-                love.graphics.setColor(unpack(block[1]))
-                love.graphics.setLineWidth(1)
-                love.graphics.rectangle("fill", x_ + 2, y_ + 2, s - 4, s - 4)
-                local ah = UserAvatarImage:getHeight()
-                local aw = UserAvatarImage:getWidth()
-                love.graphics.draw(UserAvatarImage, x_ + 2, y_ + 2, 0, s / aw, s / ah)
-            end
         end
     end
 
