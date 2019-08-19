@@ -1,5 +1,5 @@
 name: Quadrax
-owber: ccheever
+owner: ccheever
 author: ccheever
 description: Quadrax, a Tetris clone, reimplemented on Castle
 main: main.lua
