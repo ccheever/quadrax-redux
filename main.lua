@@ -207,14 +207,19 @@ function love.draw()
             love.graphics.draw(bg, 0, 0, 0, 800 / w, 450 / h)
         end
 
+        love.graphics.setColor(1, 1, 1, 0.5)
+        love.graphics.rectangle("fill", 10, 10, 120, 300)
+        love.graphics.setColor(0, 0, 0, 0.5)
+        love.graphics.rectangle("fill", 10, 10, 120, 300)
+        love.graphics.setColor(1, 1, 1, 1)
         love.graphics.print("QUADRAX", 20, 20)
         love.graphics.print("Level " .. Level, 20, 50)
         love.graphics.print("Score " .. Score, 20, 80)
         love.graphics.print("Rows  " .. Rows, 20, 110)
 
         love.graphics.print("Next", 20, 170)
-        love.graphics.setColor(0.5, 0.5, 0.5, 0.25)
-        love.graphics.rectangle("fill", 10, 190, 120, 120)
+        -- love.graphics.setColor(0.5, 0.5, 0.5, 0.25)
+        -- love.graphics.rectangle("fill", 10, 190, 120, 120)
         drawPiece(NextPiece, 20, 200)
         drawBoard(150, 0, Scale)
     elseif GameState == "GAME_OVER" then
@@ -239,7 +244,7 @@ end
 function movePieceDown()
     CPY = CPY + 1
     if checkCurrentPieceLocationValid() then
-        Score = Score + 1
+        Score = Score + 1 * (Level + 10)
         return true
     else
         CPY = CPY - 1
@@ -278,7 +283,7 @@ function checkAndClearRows()
             -- Get increasing amounts of points for
             -- removing multiple rows at at time
             inc = inc + 100
-            Score = Score + inc
+            Score = Score + (inc * (Level + 10))
             Rows = Rows + 1
 
             -- Remove row
