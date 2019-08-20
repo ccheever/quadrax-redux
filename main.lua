@@ -23,6 +23,9 @@ local HiddenRows = 4
 local BorderWidth = 1.5
 local Scale = 22
 
+local Soundtrack
+local BackgroundImages = {}
+
 local Pieces = {
     {"rod", {{2, 1}, {2, 2}, {2, 3}, {2, 4}}, {0.0, 0.0, 1.0, 1.0}},
     {"square", {{2, 2}, {2, 3}, {3, 2}, {3, 3}}, {1.0, 0.0, 0.0, 1.0}},
@@ -87,7 +90,15 @@ function love.load()
             UserAvatarImage = love.graphics.newImage(User.photoUrl)
             GameState = "IN_GAME"
             -- log({UserName = UserName, UserAvatarImage = UserAvatarImage})
-            log({UserId = UserId, UserAvatarImage = UserAvatarImage, User = User})
+            -- log({UserId = UserId, UserAvatarImage = UserAvatarImage, User = User})
+
+            Soundtrack = love.audio.newSource("./run-like-an-antelope.mp3", "stream")
+            Soundtrack:setLooping(true)
+            love.audio.play(Soundtrack)
+
+            for i = 1, 11 do
+                BackgroundImages[i] = love.graphics.newImage("./tiedye" .. i .. ".jpg")
+            end
         end
     )
 end
@@ -187,12 +198,23 @@ function love.draw()
         love.graphics.print("Press any key to start", 20, 40)
     elseif GameState == "IN_GAME" then
         -- love.graphics.draw(UserAvatarImage, 0, 0, 0)
+
+        local bg = BackgroundImages[Level]
+        if bg then
+            local w = bg:getWidth()
+            local h = bg:getHeight()
+            -- log({w = w, h = h})
+            love.graphics.draw(bg, 0, 0, 0, 800 / w, 450 / h)
+        end
+
         love.graphics.print("QUADRAX", 20, 20)
         love.graphics.print("Level " .. Level, 20, 50)
         love.graphics.print("Score " .. Score, 20, 80)
         love.graphics.print("Rows  " .. Rows, 20, 110)
 
         love.graphics.print("Next", 20, 170)
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.25)
+        love.graphics.rectangle("fill", 10, 190, 120, 120)
         drawPiece(NextPiece, 20, 200)
         drawBoard(150, 0, Scale)
     elseif GameState == "GAME_OVER" then
@@ -340,6 +362,8 @@ function love.keypressed(key, scancode, isrepeat)
             end
         elseif key == "p" then
             setCurrentPiece(Pieces[love.math.random(#Pieces)])
+        elseif key == "a" then
+            Level = Level + 1
         end
     end
 end
