@@ -36,6 +36,20 @@ local Pieces = {
     {"Z", {{2, 1}, {2, 2}, {1, 2}, {1, 3}}, {1.0, 1.0, 0.0, 1.0}}
 }
 
+local Tracks = {
+    "./music/divided-sky.mp3",
+    "./music/fee.mp3",
+    "./music/fluffhead.mp3",
+    "./music/lizards.mp3",
+    "./music/run-like-an-antelope.mp3",
+    "./music/simple.mp3",
+    "./music/stash.mp3",
+    "./music/tube.mp3",
+    "./music/weekapaug-groove.mp3",
+    "./music/wilson.mp3",
+    "./music/you-enjoy-myself.mp3"
+}
+
 love.keyboard.setKeyRepeat(true)
 
 function colorFromHex(s)
@@ -55,7 +69,8 @@ function initGameState()
     end
 
     Board = array.createArray({BoardWidth, BoardHeight}, 0)
-    Level = 1
+    Level = 0
+    nextLevel()
     CPX = 5
     CPY = 0
     Score = 0
@@ -87,6 +102,8 @@ function love.load()
     initGameState()
     network.async(
         function()
+            BackgroundImages[1] = love.graphics.newImage("./backgrounds/tiedye" .. 1 .. ".jpg")
+
             User = castle.user.getMe()
             UserId = User.userId
             UserAvatarImage = love.graphics.newImage(User.photoUrl)
@@ -94,13 +111,24 @@ function love.load()
             -- log({UserName = UserName, UserAvatarImage = UserAvatarImage})
             -- log({UserId = UserId, UserAvatarImage = UserAvatarImage, User = User})
 
-            Soundtrack = love.audio.newSource("./run-like-an-antelope.mp3", "stream")
-            Soundtrack:setLooping(true)
-            love.audio.play(Soundtrack)
-
             for i = 1, 11 do
-                BackgroundImages[i] = love.graphics.newImage("./tiedye" .. i .. ".jpg")
+                BackgroundImages[i] = love.graphics.newImage("./backgrounds/tiedye" .. i .. ".jpg")
             end
+        end
+    )
+end
+
+function changeMusic()
+    network.async(
+        function()
+            local track = Tracks[love.math.random(#Tracks)]
+            if Soundtrack then
+                love.audio.stop(Soundtrack)
+            end
+            local newSong = love.audio.newSource(track, "stream")
+            newSong:setLooping(true)
+            love.audio.play(newSong)
+            Soundtrack = newSong
         end
     )
 end
@@ -236,7 +264,7 @@ end
 local t = 0
 function love.update(dt)
     local t_ = t + dt
-    local int = Level
+    local int = Level * 0.6
     if math.floor(t * int) ~= math.floor(t_ * int) then
         movePieceDown()
     end
@@ -300,8 +328,13 @@ function checkAndClearRows()
         end
     end
     if (math.floor(rows_ / 10) ~= math.floor(Rows / 10)) then
-        Level = Level + 1
+        nextLevel()
     end
+end
+
+function nextLevel()
+    Level = Level + 1
+    changeMusic()
 end
 
 function startNextPiece()
@@ -370,7 +403,9 @@ function love.keypressed(key, scancode, isrepeat)
         elseif key == "p" then
             setCurrentPiece(Pieces[love.math.random(#Pieces)])
         elseif key == "a" then
-            Level = Level + 1
+            nextLevel()
+        elseif key == "m" then
+            changeMusic()
         end
     end
 end
