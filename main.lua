@@ -334,7 +334,11 @@ end
 
 function nextLevel()
     Level = Level + 1
-    changeMusic()
+
+    -- Change after 6 levels, sort of like tennis
+    if ((Level - 1) % 6) == 0 then
+        changeMusic()
+    end
 end
 
 function startNextPiece()
