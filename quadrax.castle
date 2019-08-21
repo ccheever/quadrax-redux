@@ -1,6 +1,7 @@
-name: Quadrax
+name: Phishtris
 owner: ccheever
 author: ccheever
-description: Kind of like Tetris
+description: A Tetris Jam
 main: main.lua
 coverImageUrl: https://github.com/ccheever/quadrax-redux/raw/master/QuadraxScreenshot.png
+
