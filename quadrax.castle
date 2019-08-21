@@ -1,7 +1,0 @@
-name: Phishtris
-owner: ccheever
-author: ccheever
-description: A Tetris Jam
-main: main.lua
-coverImageUrl: https://github.com/ccheever/quadrax-redux/raw/master/QuadraxScreenshot.png
-

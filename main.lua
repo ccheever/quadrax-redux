@@ -224,7 +224,7 @@ end
 
 function love.draw()
     if GameState == "TITLE_SCREEN" then
-        love.graphics.print("QUADRAX", 20, 20)
+        love.graphics.print("PHISHTRIS", 20, 20)
         love.graphics.print("Press any key to start", 20, 40)
     elseif GameState == "IN_GAME" then
         -- love.graphics.draw(UserAvatarImage, 0, 0, 0)
@@ -242,7 +242,7 @@ function love.draw()
         love.graphics.setColor(0, 0, 0, 0.5)
         love.graphics.rectangle("fill", 10, 10, 120, 300)
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.print("QUADRAX", 20, 20)
+        love.graphics.print("PHISHTRIS", 20, 20)
         love.graphics.print("Level " .. Level, 20, 50)
         love.graphics.print("Score " .. Score, 20, 80)
         love.graphics.print("Rows  " .. Rows, 20, 110)
